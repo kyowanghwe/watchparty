@@ -1221,6 +1221,12 @@ export default class App extends React.Component<AppProps, AppState> {
     return 1;
   };
 
+  fetchJson = async () => {
+    const response = await fetch('./subtitle.srt');
+    let responseText = await response.arrayBuffer();
+    return responseText;
+  };
+
   loadSubtitles = async () => {
     const leftVideo = document.getElementById('leftVideo') as HTMLMediaElement;
     if (!this.isSubtitled()) {
@@ -1230,8 +1236,11 @@ export default class App extends React.Component<AppProps, AppState> {
       leftVideo.innerHTML = '';
       let subtitleSrc = this.state.currentSubtitle;
       if (subtitleSrc) {
-        const response = await window.fetch(subtitleSrc);
-        const buffer = await response.arrayBuffer();
+        // load data from subtitle.srt
+        let buffer = await this.fetchJson();
+
+        // const response = await window.fetch(subtitleSrc);
+        // const buffer = await response.arrayBuffer();
         const url = await toWebVTT(new Blob([buffer]));
         const track = document.createElement('track');
         track.kind = 'captions';

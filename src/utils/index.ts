@@ -195,13 +195,14 @@ export const iceServers = () => [
   },
 ];
 
-export const serverPath =
-  process.env.REACT_APP_SERVER_HOST ||
-  `${window.location.protocol}//${
-    process.env.NODE_ENV === 'production'
-      ? window.location.host
-      : `${window.location.hostname}:8080`
-  }`;
+// export const serverPath =
+//   process.env.REACT_APP_SERVER_HOST ||
+//   `${window.location.protocol}//${
+//     process.env.NODE_ENV === 'production'
+//       ? window.location.host
+//       : `${window.location.hostname}:8080`
+//   }`;
+export const serverPath = `${window.location.origin}`.replace('3000', '8080');
 
 export async function getMediaPathResults(
   mediaPath: string,

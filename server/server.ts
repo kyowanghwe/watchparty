@@ -111,7 +111,8 @@ app.get('/ping', (_req, res) => {
 
 // Data's already compressed so go before the compression middleware
 app.get('/subtitle/:hash', async (req, res) => {
-  const gzipped = await redis?.getBuffer('subtitle:' + req.params.hash);
+  const gzipped = req.params.hash;
+  // const gzipped = await redis?.getBuffer('subtitle:' + req.params.hash);
   if (!gzipped) {
     return res.status(404).end('not found');
   }
@@ -123,18 +124,26 @@ app.use(compression());
 
 app.post('/subtitle', async (req, res) => {
   const data = req.body;
-  if (!redis) {
-    return;
+  try {
+    fs.writeFileSync(
+      '/workspace/watchparty/public/subtitle.srt',
+      data.toString()
+    );
+  } catch (err) {
+    console.error(err);
   }
+  // if (!redis) {
+  //   return;
+  // }
   // calculate hash, gzip and save to redis
   const hash = crypto
     .createHash('sha256')
     .update(data, 'utf8')
     .digest()
     .toString('hex');
-  let gzipData = (await gzip(data)) as Buffer;
-  await redis.setex('subtitle:' + hash, 24 * 60 * 60, gzipData);
-  redisCount('subUploads');
+  // let gzipData = (await gzip(data)) as Buffer;
+  // await redis.setex('subtitle:' + hash, 24 * 60 * 60, gzipData);
+  // redisCount('subUploads');
   return res.json({ hash });
 });
 
