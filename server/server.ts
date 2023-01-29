@@ -328,18 +328,20 @@ app.get('/metadata', async (req, res) => {
   let isSubscriber = false;
   if (decoded?.email) {
     const customer = await getCustomerByEmail(decoded.email);
+    // Is the user an active subscriber?
     isSubscriber = Boolean(
       customer?.subscriptions?.data?.find((sub) => sub?.status === 'active')
     );
+    // Has the user ever been a subscriber?
     isCustomer = Boolean(customer);
   }
-  let isVMPoolFull = null;
+  let isFreePoolFull = false;
   try {
-    isVMPoolFull = (
+    isFreePoolFull = (
       await axios.get(
-        'http://localhost:' + config.VMWORKER_PORT + '/isVMPoolFull'
+        'http://localhost:' + config.VMWORKER_PORT + '/isFreePoolFull'
       )
-    ).data;
+    ).data.isFull;
   } catch (e) {
     console.warn(e);
   }
@@ -347,14 +349,12 @@ app.get('/metadata', async (req, res) => {
     decoded?.email != null &&
     Boolean(config.BETA_USER_EMAILS.split(',').includes(decoded?.email));
   const streamPath = beta ? config.STREAM_PATH : undefined;
-  const isCustomDomain = req.hostname === config.CUSTOM_SETTINGS_HOSTNAME;
   return res.json({
     isSubscriber,
     isCustomer,
-    isVMPoolFull,
+    isFreePoolFull,
     beta,
     streamPath,
-    isCustomDomain,
   });
 });
 
@@ -775,6 +775,7 @@ async function getStats() {
     numPermaRooms,
     numSubs,
     createRoomErrors,
+    createRoomPreloads,
     deleteAccounts,
     chatMessages,
     addReactions,
@@ -790,7 +791,6 @@ async function getStats() {
     connectStarts,
     connectStartsDistinct,
     hetznerApiRemaining,
-    createRoomPreloads,
     vBrowserStarts,
     vBrowserLaunches,
     vBrowserFails,

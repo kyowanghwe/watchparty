@@ -3,7 +3,7 @@ import Redis from 'ioredis';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { redisCount } from '../utils/redis';
-import { execSync } from 'child_process';
+import { PoolConfig, PoolRegion } from './utils';
 
 let redis: Redis.Redis | undefined = undefined;
 if (config.REDIS_URL) {
@@ -11,25 +11,20 @@ if (config.REDIS_URL) {
 }
 
 const incrInterval = 5 * 1000;
-const decrInterval = 1 * 60 * 1000;
+const decrInterval = 30 * 1000;
 const cleanupInterval = 5 * 60 * 1000;
 const updateSizeInterval = 60 * 1000;
 
 export abstract class VMManager {
   protected isLarge = false;
-  protected region = '';
+  protected region: PoolRegion = 'US';
   protected redis: Redis.Redis;
   private currentSize = 0;
   private limitSize = 0;
   private minSize = 0;
 
-  constructor(
-    large: boolean,
-    region: string,
-    limitSize: number,
-    minSize: number
-  ) {
-    this.isLarge = Boolean(large);
+  constructor({ isLarge, region, limitSize, minSize }: PoolConfig) {
+    this.isLarge = isLarge;
     this.region = region;
     this.limitSize = Number(limitSize);
     this.minSize = Number(minSize);
@@ -38,6 +33,14 @@ export abstract class VMManager {
     }
     this.redis = redis;
   }
+
+  public getIsLarge = () => {
+    return this.isLarge;
+  };
+
+  public getRegion = () => {
+    return this.region;
+  };
 
   public getMinSize = () => {
     return this.minSize;
@@ -53,6 +56,10 @@ export abstract class VMManager {
 
   public getCurrentSize = () => {
     return this.currentSize;
+  };
+
+  public getPoolName = () => {
+    return this.id + (this.isLarge ? 'Large' : '') + this.region;
   };
 
   public getAdjustedBuffer = () => {
@@ -180,7 +187,7 @@ export abstract class VMManager {
     try {
       console.log(
         '[VMWORKER] starting background jobs for %s',
-        this.getRedisQueueKey()
+        this.getPoolName()
       );
       const resizeVMGroupIncr = async () => {
         const availableCount = await this.redis.llen(this.getRedisQueueKey());
@@ -271,7 +278,7 @@ export abstract class VMManager {
           );
           console.log(
             '[STATS] %s: currentSize %s, available %s, staging %s, buffer %s',
-            this.getRedisQueueKey(),
+            this.getPoolName(),
             allVMs.length,
             availableKeys.length,
             stagingKeys.length,
@@ -314,7 +321,7 @@ export abstract class VMManager {
         ]);
         console.log(
           '[CLEANUP] %s: cleanup %s VMs',
-          this.getRedisQueueKey(),
+          this.getPoolName(),
           allVMs.length - dontDelete.size
         );
         for (let i = 0; i < allVMs.length; i++) {

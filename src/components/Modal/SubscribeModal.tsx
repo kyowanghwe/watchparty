@@ -89,7 +89,7 @@ export class SubscribeModal extends React.Component<{
                   <Table.Cell>Anytime</Table.Cell>
                 </Table.Row>
                 <Table.Row>
-                  <Table.Cell>VBrowser Resolution</Table.Cell>
+                  <Table.Cell>VBrowser Max Resolution</Table.Cell>
                   <Table.Cell>720p</Table.Cell>
                   <Table.Cell>1080p</Table.Cell>
                 </Table.Row>
@@ -102,6 +102,13 @@ export class SubscribeModal extends React.Component<{
                   <Table.Cell>VBrowser Session Length</Table.Cell>
                   <Table.Cell>3 hours</Table.Cell>
                   <Table.Cell>24 hours</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.Cell>VBrowser Region Selection</Table.Cell>
+                  <Table.Cell></Table.Cell>
+                  <Table.Cell>
+                    <Icon name="check" />
+                  </Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell>Number of Permanent Rooms</Table.Cell>
